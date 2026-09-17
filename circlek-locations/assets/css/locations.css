@@ -395,7 +395,8 @@
 .ckb-row__main{min-width:0}
 .ckb-row__name{margin:0;font-size:16px;line-height:1.3;font-weight:700;letter-spacing:-.005em}
 .ckb-row__code{
-  display:inline-flex;align-items:center;gap:6px;margin:6px 0 0;padding:3px 8px;
+  display:flex;width:max-content;max-width:100%;align-items:center;gap:6px;
+  margin:6px 0 0;margin-inline-end:auto;padding:3px 8px;text-align:left;
   border-radius:999px;background:var(--line-2);font-size:11.5px;line-height:1.35;color:var(--ink-3)
 }
 .ckb-row__code b{font-weight:700;color:var(--ink-2);letter-spacing:.025em}
@@ -550,6 +551,7 @@ body.rtl.page-template-template-location .ckl--rtl .ckb-type__head h3,
 body.rtl.page-template-template-location .ckl--rtl .ckb-city__head h3,
 body.rtl.page-template-template-location .ckl--rtl .ckb-row,
 body.rtl.page-template-template-location .ckl--rtl .ckb-row__name,
+body.rtl.page-template-template-location .ckl--rtl .ckb-row__code,
 body.rtl.page-template-template-location .ckl--rtl .ckb-row__addr,
 body.rtl.page-template-template-location .ckl--rtl .ckb-row__city,
 body.rtl.page-template-template-location .ckl--rtl .ckb-facet__title,
