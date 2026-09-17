@@ -2,7 +2,7 @@
 
 Installable WordPress plugin for the redesigned Circle K locations directory supplied in `CircleK-Locations-HTML.zip`.
 
-Current plugin version: **1.4.4**.
+Current plugin version: **1.5.0**.
 
 ## Updates from GitHub
 
@@ -22,7 +22,16 @@ The repository and release asset must remain publicly downloadable for unattende
 2. Activate **Circle K Locations**.
 3. Open the existing WordPress page whose slug is `locations`.
 
-The plugin automatically replaces that page's old table content and preserves the active theme header and footer. The bundled roster contains every row from the supplied update sheets: 42 Saudi Arabia locations (13 fuel stations and 29 convenience stores) and 14 United Arab Emirates stores. Store codes are visible in the directory and searchable. Version 1.4.4 removes the editable store-number and display-order fields; the visible row number is generated automatically in PHP, so published locations are always numbered consecutively without gaps. Fuel-group counts use station/stations (and the Arabic equivalents) instead of store/stores, and each store-code badge is aligned with the start of its store details. The plugin also refreshes GitHub release metadata immediately when an administrator uses WordPress's **Check again** action. Use a full-width page template if the active theme constrains page content to a narrow column.
+The plugin automatically replaces that page's old table content and preserves the active theme header and footer. The bundled roster contains every row from the supplied update sheets: 42 Saudi Arabia locations (13 fuel stations and 29 convenience stores) and 14 United Arab Emirates stores. Store codes are visible in the directory and searchable. Version 1.5.0 adds native WordPress taxonomies for hierarchical location areas and location types, and automatically migrates existing location classifications without replacing location posts. It also removes the editable store-number and display-order fields; the visible row number is generated automatically in PHP, so published locations are always numbered consecutively without gaps. Fuel-group counts use station/stations (and the Arabic equivalents) instead of store/stores, and each store-code badge is aligned with the start of its store details. The plugin refreshes GitHub release metadata immediately when an administrator uses WordPress's **Check again** action. Use a full-width page template if the active theme constrains page content to a narrow column.
+
+## Location taxonomies
+
+Version 1.5.0 registers two native WordPress taxonomies:
+
+- **Location Areas** — hierarchical terms arranged as Country → Region → City.
+- **Location Types** — Fuel Stations and Convenience Stores.
+
+Existing country, region, city and type metadata is migrated to taxonomy terms on update. The existing metadata remains as a backwards-compatible fallback, and saving a location keeps both representations synchronized. Geography and type can still be edited through the controlled fields in the Location Details panel, while the resulting terms can be reviewed from the Locations admin menu and queried through the REST API.
 
 For a page with a different slug, add this shortcode to the page:
 
