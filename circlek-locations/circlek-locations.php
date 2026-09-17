@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Circle K Locations
  * Description: Dynamic, searchable Circle K store directory with editable location custom fields.
- * Version: 1.3.0
+ * Version: 1.4.0
  * Author: Circle K
  * Update URI: https://github.com/pmunankarmi/circlek
  * Text Domain: circlek-locations
@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CKL_VERSION', '1.3.0' );
+define( 'CKL_VERSION', '1.4.0' );
 define( 'CKL_FILE', __FILE__ );
 define( 'CKL_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CKL_URL', plugin_dir_url( __FILE__ ) );

@@ -2,7 +2,7 @@
 
 Installable WordPress plugin for the redesigned Circle K locations directory supplied in `CircleK-Locations-HTML.zip`.
 
-Current plugin version: **1.3.0**.
+Current plugin version: **1.4.0**.
 
 ## Updates from GitHub
 
@@ -22,7 +22,7 @@ The repository and release asset must remain publicly downloadable for unattende
 2. Activate **Circle K Locations**.
 3. Open the existing WordPress page whose slug is `locations`.
 
-The plugin automatically replaces that page's old table content and preserves the active theme header and footer. Version 1.3.0 replaces the previous location posts with the latest 44-entry roster: 30 Saudi Arabia locations (including 13 fuel stations) and 14 United Arab Emirates stores. Store codes are visible in the directory and searchable. Use a full-width page template if the active theme constrains page content to a narrow column.
+The plugin automatically replaces that page's old table content and preserves the active theme header and footer. Version 1.4.0 replaces the previous location posts with every row from the supplied update sheets: 42 Saudi Arabia locations (13 fuel stations and 29 convenience stores) and 14 United Arab Emirates stores. Store codes are visible in the directory and searchable. Use a full-width page template if the active theme constrains page content to a narrow column.
 
 For a page with a different slug, add this shortcode to the page:
 

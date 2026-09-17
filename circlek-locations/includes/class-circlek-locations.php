@@ -695,11 +695,11 @@ final class CircleK_Locations {
 	}
 
 	public function maybe_upgrade_data() {
-		if ( '4' !== (string) get_option( 'ckl_location_data_version', '' ) ) {
+		if ( '5' !== (string) get_option( 'ckl_location_data_version', '' ) ) {
 			$this->sync_location_data( true );
 		}
 
-		if ( '4' !== (string) get_option( 'ckl_ar_data_version', '' ) ) {
+		if ( '5' !== (string) get_option( 'ckl_ar_data_version', '' ) ) {
 			$this->backfill_arabic_fields();
 		}
 	}
@@ -819,7 +819,7 @@ final class CircleK_Locations {
 		}
 
 		update_option( 'ckl_managed_source_codes', $active_codes, false );
-		update_option( 'ckl_location_data_version', '4', false );
+		update_option( 'ckl_location_data_version', '5', false );
 	}
 
 	public function backfill_arabic_fields() {
@@ -857,6 +857,6 @@ final class CircleK_Locations {
 			}
 		}
 
-		update_option( 'ckl_ar_data_version', '4', false );
+		update_option( 'ckl_ar_data_version', '5', false );
 	}
 }
