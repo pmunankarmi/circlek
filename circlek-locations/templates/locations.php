@@ -164,7 +164,7 @@ $strategy_items = array(
 										<ul class="ckb-rows">
 											<?php foreach ( $city_locations as $location ) : ?>
 												<?php
-												$haystack = strtolower( implode( ' ', array( $location['number'], $location['name'], $location['city'], $location['address'], $context['regions'][ $location['region'] ], $context['types'][ $location['type'] ] ) ) );
+												$haystack = strtolower( implode( ' ', array( $location['number'], $location['code'], $location['name'], $location['city'], $location['address'], $context['regions'][ $location['region'] ], $context['types'][ $location['type'] ] ) ) );
 												$directions = $location['directions_url'];
 												if ( ! $directions ) {
 													$directions = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode( 'Circle K ' . $location['name'] . ', ' . $location['address'] );

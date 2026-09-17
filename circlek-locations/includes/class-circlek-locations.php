@@ -117,6 +117,7 @@ final class CircleK_Locations {
 	public function register_meta_fields() {
 		$location_fields = array(
 			'ckl_store_number'   => array( 'integer', 'absint' ),
+			'ckl_store_code'     => array( 'string', 'sanitize_text_field' ),
 			'ckl_country'        => array( 'string', 'sanitize_key' ),
 			'ckl_region'         => array( 'string', 'sanitize_key' ),
 			'ckl_city'           => array( 'string', 'sanitize_text_field' ),
@@ -200,6 +201,7 @@ final class CircleK_Locations {
 		wp_nonce_field( 'ckl_save_location', 'ckl_location_nonce' );
 		$values = array(
 			'number'     => get_post_meta( $post->ID, 'ckl_store_number', true ),
+			'code'       => get_post_meta( $post->ID, 'ckl_store_code', true ),
 			'country'    => get_post_meta( $post->ID, 'ckl_country', true ),
 			'region'     => get_post_meta( $post->ID, 'ckl_region', true ),
 			'city'       => get_post_meta( $post->ID, 'ckl_city', true ),
@@ -215,6 +217,7 @@ final class CircleK_Locations {
 		<style>.ckl-admin-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 22px}.ckl-admin-field label{display:block;font-weight:600;margin-bottom:6px}.ckl-admin-field input,.ckl-admin-field select,.ckl-admin-field textarea{width:100%}.ckl-admin-field--wide{grid-column:1/-1}.ckl-admin-section{grid-column:1/-1;margin:8px 0 -4px;padding-top:18px;border-top:1px solid #dcdcde}.ckl-admin-section h3{margin:0 0 5px}.ckl-admin-section p,.ckl-admin-help{color:#646970;font-size:12px;margin:5px 0 0}@media(max-width:782px){.ckl-admin-grid{grid-template-columns:1fr}}</style>
 		<div class="ckl-admin-grid">
 			<?php $this->number_field( 'ckl_store_number', __( 'Store number', 'circlek-locations' ), $values['number'], 0 ); ?>
+			<?php $this->text_field( 'ckl_store_code', __( 'Source store code', 'circlek-locations' ), $values['code'] ); ?>
 			<?php $this->number_field( 'ckl_display_order', __( 'Display order', 'circlek-locations' ), $values['order'], 1 ); ?>
 			<?php $this->select_field( 'ckl_country', __( 'Country', 'circlek-locations' ), $values['country'], $this->countries ); ?>
 			<?php $this->select_field( 'ckl_region', __( 'Region', 'circlek-locations' ), $values['region'], $this->regions ); ?>
@@ -312,6 +315,7 @@ final class CircleK_Locations {
 		$type    = isset( $_POST['ckl_location_type'] ) ? sanitize_key( wp_unslash( $_POST['ckl_location_type'] ) ) : '';
 
 		update_post_meta( $post_id, 'ckl_store_number', isset( $_POST['ckl_store_number'] ) ? absint( $_POST['ckl_store_number'] ) : 0 );
+		update_post_meta( $post_id, 'ckl_store_code', isset( $_POST['ckl_store_code'] ) ? sanitize_text_field( wp_unslash( $_POST['ckl_store_code'] ) ) : '' );
 		update_post_meta( $post_id, 'ckl_display_order', isset( $_POST['ckl_display_order'] ) ? absint( $_POST['ckl_display_order'] ) : 9999 );
 		update_post_meta( $post_id, 'ckl_country', isset( $this->countries[ $country ] ) ? $country : '' );
 		update_post_meta( $post_id, 'ckl_region', isset( $this->regions[ $region ] ) ? $region : '' );
@@ -442,6 +446,7 @@ final class CircleK_Locations {
 				'id'             => $post->ID,
 				'name'           => $name,
 				'number'         => absint( get_post_meta( $post->ID, 'ckl_store_number', true ) ),
+				'code'           => get_post_meta( $post->ID, 'ckl_store_code', true ),
 				'country'        => $country,
 				'region'         => $region,
 				'city'           => $city,
@@ -632,6 +637,7 @@ final class CircleK_Locations {
 			'cb'          => isset( $columns['cb'] ) ? $columns['cb'] : '<input type="checkbox" />',
 			'title'       => __( 'Store Name', 'circlek-locations' ),
 			'ckl_number'  => __( 'No.', 'circlek-locations' ),
+			'ckl_code'    => __( 'Store Code', 'circlek-locations' ),
 			'ckl_country' => __( 'Country', 'circlek-locations' ),
 			'ckl_region'  => __( 'Region', 'circlek-locations' ),
 			'ckl_city'    => __( 'City', 'circlek-locations' ),
@@ -643,6 +649,7 @@ final class CircleK_Locations {
 	public function admin_column_value( $column, $post_id ) {
 		$map = array(
 			'ckl_number'  => 'ckl_store_number',
+			'ckl_code'    => 'ckl_store_code',
 			'ckl_country' => 'ckl_country',
 			'ckl_region'  => 'ckl_region',
 			'ckl_city'    => 'ckl_city',
@@ -683,45 +690,129 @@ final class CircleK_Locations {
 			return;
 		}
 
+		$this->sync_location_data();
+		update_option( 'ckl_seeded_version', CKL_VERSION, false );
+	}
+
+	public function maybe_upgrade_data() {
+		if ( '3' !== (string) get_option( 'ckl_location_data_version', '' ) ) {
+			$this->sync_location_data();
+		}
+
+		if ( '3' !== (string) get_option( 'ckl_ar_data_version', '' ) ) {
+			$this->backfill_arabic_fields();
+		}
+	}
+
+	private function sync_location_data() {
 		$locations = require CKL_DIR . 'data/locations.php';
 		$arabic    = require CKL_DIR . 'data/locations-ar.php';
+		$post_ids  = get_posts(
+			array(
+				'post_type'        => self::POST_TYPE,
+				'post_status'      => 'any',
+				'posts_per_page'   => -1,
+				'fields'           => 'ids',
+				'no_found_rows'    => true,
+				'suppress_filters' => true,
+			)
+		);
+
+		$posts_by_code   = array();
+		$posts_by_legacy = array();
+		foreach ( $post_ids as $post_id ) {
+			$code = (string) get_post_meta( $post_id, 'ckl_store_code', true );
+			if ( '' !== $code ) {
+				$posts_by_code[ $code ] = $post_id;
+			}
+
+			$legacy_key = (string) get_post_meta( $post_id, 'ckl_legacy_key', true );
+			if ( '' === $legacy_key ) {
+				$legacy_key = get_post_meta( $post_id, 'ckl_country', true ) . ':' . absint( get_post_meta( $post_id, 'ckl_store_number', true ) );
+			}
+			$posts_by_legacy[ $legacy_key ] = $post_id;
+		}
+
+		$active_ids   = array();
+		$active_codes = array();
 		foreach ( $locations as $index => $location ) {
-			list( $number, $name, $country, $region, $city, $type, $address ) = $location;
-			$ar = isset( $arabic[ $country . ':' . $number ] ) ? $arabic[ $country . ':' . $number ] : array( $name, $city, $address );
-			$post_id = wp_insert_post(
-				array(
-					'post_type'   => self::POST_TYPE,
-					'post_status' => 'publish',
-					'post_title'  => $name,
-					'post_name'   => sanitize_title( $country . '-' . $number . '-' . $name ),
-				)
+			$post_id = 0;
+			if ( isset( $posts_by_code[ $location['code'] ] ) ) {
+				$post_id = $posts_by_code[ $location['code'] ];
+			} elseif ( $location['legacy_key'] && isset( $posts_by_legacy[ $location['legacy_key'] ] ) ) {
+				$post_id = $posts_by_legacy[ $location['legacy_key'] ];
+			}
+
+			$post_data = array(
+				'post_type'   => self::POST_TYPE,
+				'post_status' => 'publish',
+				'post_title'  => $location['name'],
+				'post_name'   => sanitize_title( $location['country'] . '-' . $location['code'] . '-' . $location['name'] ),
 			);
+
+			if ( $post_id ) {
+				$post_data['ID'] = $post_id;
+				$post_id = wp_update_post( $post_data, true );
+			} else {
+				$post_id = wp_insert_post( $post_data, true );
+			}
 
 			if ( is_wp_error( $post_id ) ) {
 				continue;
 			}
 
-			update_post_meta( $post_id, 'ckl_store_number', $number );
-			update_post_meta( $post_id, 'ckl_country', $country );
-			update_post_meta( $post_id, 'ckl_region', $region );
-			update_post_meta( $post_id, 'ckl_city', $city );
+			$ar = $location['legacy_key'] && isset( $arabic[ $location['legacy_key'] ] )
+				? $arabic[ $location['legacy_key'] ]
+				: array( $location['name'], $location['city'], $location['address'] );
+
+			update_post_meta( $post_id, 'ckl_store_number', $location['number'] );
+			update_post_meta( $post_id, 'ckl_store_code', $location['code'] );
+			update_post_meta( $post_id, 'ckl_legacy_key', $location['legacy_key'] );
+			update_post_meta( $post_id, 'ckl_country', $location['country'] );
+			update_post_meta( $post_id, 'ckl_region', $location['region'] );
+			update_post_meta( $post_id, 'ckl_city', $location['city'] );
 			update_post_meta( $post_id, 'ckl_name_ar', $ar[0] );
 			update_post_meta( $post_id, 'ckl_city_ar', $ar[1] );
-			update_post_meta( $post_id, 'ckl_location_type', $type );
-			update_post_meta( $post_id, 'ckl_address', $address );
+			update_post_meta( $post_id, 'ckl_location_type', $location['type'] );
+			update_post_meta( $post_id, 'ckl_address', $location['address'] );
 			update_post_meta( $post_id, 'ckl_address_ar', $ar[2] );
+			update_post_meta( $post_id, 'ckl_directions_url', $location['directions_url'] );
 			update_post_meta( $post_id, 'ckl_display_order', $index + 1 );
+
+			$active_ids[]   = (int) $post_id;
+			$active_codes[] = (string) $location['code'];
 		}
 
-		update_option( 'ckl_seeded_version', CKL_VERSION, false );
-	}
+		$legacy_seed_keys = array(
+			'ksa:1', 'ksa:2', 'ksa:3', 'ksa:4', 'ksa:5', 'ksa:6', 'ksa:7', 'ksa:8', 'ksa:9', 'ksa:10', 'ksa:11', 'ksa:12',
+			'ksa:13', 'ksa:14', 'ksa:15', 'ksa:16', 'ksa:17', 'ksa:18', 'ksa:19', 'ksa:20', 'ksa:21', 'ksa:22', 'ksa:23',
+			'uae:1', 'uae:2', 'uae:3', 'uae:4', 'uae:5', 'uae:6', 'uae:7', 'uae:8', 'uae:9', 'uae:10',
+		);
+		$previous_codes = (array) get_option( 'ckl_managed_source_codes', array() );
 
-	public function maybe_upgrade_data() {
-		if ( '2' === (string) get_option( 'ckl_ar_data_version', '' ) ) {
-			return;
+		foreach ( $post_ids as $post_id ) {
+			if ( in_array( (int) $post_id, $active_ids, true ) ) {
+				continue;
+			}
+
+			$code = (string) get_post_meta( $post_id, 'ckl_store_code', true );
+			$legacy_key = (string) get_post_meta( $post_id, 'ckl_legacy_key', true );
+			if ( '' === $legacy_key ) {
+				$legacy_key = get_post_meta( $post_id, 'ckl_country', true ) . ':' . absint( get_post_meta( $post_id, 'ckl_store_number', true ) );
+			}
+
+			if ( in_array( $code, $previous_codes, true ) || in_array( $legacy_key, $legacy_seed_keys, true ) ) {
+				wp_update_post(
+					array(
+						'ID'          => $post_id,
+						'post_status' => 'draft',
+					)
+				);
+			}
 		}
 
-		$this->backfill_arabic_fields();
+		update_option( 'ckl_managed_source_codes', $active_codes, false );
+		update_option( 'ckl_location_data_version', '3', false );
 	}
 
 	public function backfill_arabic_fields() {
@@ -738,14 +829,27 @@ final class CircleK_Locations {
 		);
 
 		foreach ( $post_ids as $post_id ) {
-			$key = get_post_meta( $post_id, 'ckl_country', true ) . ':' . absint( get_post_meta( $post_id, 'ckl_store_number', true ) );
+			$key = (string) get_post_meta( $post_id, 'ckl_legacy_key', true );
+			if ( '' === $key ) {
+				$key = get_post_meta( $post_id, 'ckl_country', true ) . ':' . absint( get_post_meta( $post_id, 'ckl_store_number', true ) );
+			}
 			if ( isset( $arabic[ $key ] ) ) {
 				update_post_meta( $post_id, 'ckl_name_ar', $arabic[ $key ][0] );
 				update_post_meta( $post_id, 'ckl_city_ar', $arabic[ $key ][1] );
 				update_post_meta( $post_id, 'ckl_address_ar', $arabic[ $key ][2] );
+			} else {
+				if ( '' === (string) get_post_meta( $post_id, 'ckl_name_ar', true ) ) {
+					update_post_meta( $post_id, 'ckl_name_ar', get_the_title( $post_id ) );
+				}
+				if ( '' === (string) get_post_meta( $post_id, 'ckl_city_ar', true ) ) {
+					update_post_meta( $post_id, 'ckl_city_ar', get_post_meta( $post_id, 'ckl_city', true ) );
+				}
+				if ( '' === (string) get_post_meta( $post_id, 'ckl_address_ar', true ) ) {
+					update_post_meta( $post_id, 'ckl_address_ar', get_post_meta( $post_id, 'ckl_address', true ) );
+				}
 			}
 		}
 
-		update_option( 'ckl_ar_data_version', '2', false );
+		update_option( 'ckl_ar_data_version', '3', false );
 	}
 }
