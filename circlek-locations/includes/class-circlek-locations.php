@@ -71,6 +71,14 @@ final class CircleK_Locations {
 		add_action( 'save_post_page', array( $this, 'save_page_fields' ) );
 		add_filter( 'manage_' . self::POST_TYPE . '_posts_columns', array( $this, 'admin_columns' ) );
 		add_action( 'manage_' . self::POST_TYPE . '_posts_custom_column', array( $this, 'admin_column_value' ), 10, 2 );
+		add_action( self::AREA_TAXONOMY . '_add_form_fields', array( $this, 'render_term_arabic_add_field' ) );
+		add_action( self::AREA_TAXONOMY . '_edit_form_fields', array( $this, 'render_term_arabic_edit_field' ), 10, 2 );
+		add_action( self::TYPE_TAXONOMY . '_add_form_fields', array( $this, 'render_term_arabic_add_field' ) );
+		add_action( self::TYPE_TAXONOMY . '_edit_form_fields', array( $this, 'render_term_arabic_edit_field' ), 10, 2 );
+		add_action( 'created_' . self::AREA_TAXONOMY, array( $this, 'save_term_arabic_name' ) );
+		add_action( 'edited_' . self::AREA_TAXONOMY, array( $this, 'save_term_arabic_name' ) );
+		add_action( 'created_' . self::TYPE_TAXONOMY, array( $this, 'save_term_arabic_name' ) );
+		add_action( 'edited_' . self::TYPE_TAXONOMY, array( $this, 'save_term_arabic_name' ) );
 		add_filter( 'the_content', array( $this, 'replace_locations_page_content' ), 20 );
 		add_filter( 'document_title_parts', array( $this, 'filter_document_title' ) );
 		add_filter( 'pre_get_document_title', array( $this, 'filter_full_document_title' ), 20 );
@@ -165,6 +173,60 @@ final class CircleK_Locations {
 				'query_var'         => false,
 			)
 		);
+
+		foreach ( array( self::AREA_TAXONOMY, self::TYPE_TAXONOMY ) as $taxonomy ) {
+			register_term_meta(
+				$taxonomy,
+				'ckl_name_ar',
+				array(
+					'single'            => true,
+					'type'              => 'string',
+					'show_in_rest'      => true,
+					'sanitize_callback' => 'sanitize_text_field',
+					'auth_callback'     => function() {
+						return current_user_can( 'manage_categories' );
+					},
+				)
+			);
+		}
+	}
+
+	public function render_term_arabic_add_field( $taxonomy ) {
+		wp_nonce_field( 'ckl_save_term_arabic', 'ckl_term_arabic_nonce' );
+		?>
+		<div class="form-field term-ckl-name-ar-wrap">
+			<label for="ckl_name_ar"><?php esc_html_e( 'Arabic name', 'circlek-locations' ); ?></label>
+			<input id="ckl_name_ar" name="ckl_name_ar" type="text" dir="rtl" value="" />
+			<p><?php esc_html_e( 'Shown in the Arabic taxonomy column and used by Arabic location views.', 'circlek-locations' ); ?></p>
+		</div>
+		<?php
+	}
+
+	public function render_term_arabic_edit_field( $term, $taxonomy ) {
+		wp_nonce_field( 'ckl_save_term_arabic', 'ckl_term_arabic_nonce' );
+		?>
+		<tr class="form-field term-ckl-name-ar-wrap">
+			<th scope="row"><label for="ckl_name_ar"><?php esc_html_e( 'Arabic name', 'circlek-locations' ); ?></label></th>
+			<td>
+				<input id="ckl_name_ar" name="ckl_name_ar" type="text" dir="rtl" value="<?php echo esc_attr( get_term_meta( $term->term_id, 'ckl_name_ar', true ) ); ?>" />
+				<p class="description"><?php esc_html_e( 'Shown in the Arabic taxonomy column and used by Arabic location views.', 'circlek-locations' ); ?></p>
+			</td>
+		</tr>
+		<?php
+	}
+
+	public function save_term_arabic_name( $term_id ) {
+		if ( ! current_user_can( 'manage_categories' ) || ! isset( $_POST['ckl_term_arabic_nonce'] ) ) {
+			return;
+		}
+
+		$nonce = sanitize_text_field( wp_unslash( $_POST['ckl_term_arabic_nonce'] ) );
+		if ( ! wp_verify_nonce( $nonce, 'ckl_save_term_arabic' ) ) {
+			return;
+		}
+
+		$name = isset( $_POST['ckl_name_ar'] ) ? sanitize_text_field( wp_unslash( $_POST['ckl_name_ar'] ) ) : '';
+		update_term_meta( $term_id, 'ckl_name_ar', $name );
 	}
 
 	public function register_meta_fields() {
@@ -365,7 +427,8 @@ final class CircleK_Locations {
 		update_post_meta( $post_id, 'ckl_address_ar', isset( $_POST['ckl_address_ar'] ) ? sanitize_textarea_field( wp_unslash( $_POST['ckl_address_ar'] ) ) : '' );
 		update_post_meta( $post_id, 'ckl_directions_url', isset( $_POST['ckl_directions_url'] ) ? esc_url_raw( wp_unslash( $_POST['ckl_directions_url'] ) ) : '' );
 
-		$this->sync_location_taxonomies( $post_id, $country, $region, $city, $type );
+		$city_ar = isset( $_POST['ckl_city_ar'] ) ? sanitize_text_field( wp_unslash( $_POST['ckl_city_ar'] ) ) : '';
+		$this->sync_location_taxonomies( $post_id, $country, $region, $city, $type, $city_ar );
 	}
 
 	public function save_page_fields( $post_id ) {
@@ -674,14 +737,14 @@ final class CircleK_Locations {
 
 	public function admin_columns( $columns ) {
 		return array(
-			'cb'          => isset( $columns['cb'] ) ? $columns['cb'] : '<input type="checkbox" />',
-			'title'       => __( 'Store Name', 'circlek-locations' ),
-			'ckl_code'    => __( 'Store Code', 'circlek-locations' ),
-			'ckl_country' => __( 'Country', 'circlek-locations' ),
-			'ckl_region'  => __( 'Region', 'circlek-locations' ),
-			'ckl_city'    => __( 'City', 'circlek-locations' ),
-			'ckl_type'    => __( 'Type', 'circlek-locations' ),
-			'date'        => isset( $columns['date'] ) ? $columns['date'] : __( 'Date', 'circlek-locations' ),
+			'cb'           => isset( $columns['cb'] ) ? $columns['cb'] : '<input type="checkbox" />',
+			'title'        => __( 'Store Name', 'circlek-locations' ),
+			'ckl_code'     => __( 'Store Code', 'circlek-locations' ),
+			'ckl_area'     => __( 'Location Area', 'circlek-locations' ),
+			'ckl_area_ar'  => __( 'Location Area (Arabic)', 'circlek-locations' ),
+			'ckl_type'     => __( 'Location Type', 'circlek-locations' ),
+			'ckl_type_ar'  => __( 'Type (Arabic)', 'circlek-locations' ),
+			'date'         => isset( $columns['date'] ) ? $columns['date'] : __( 'Date', 'circlek-locations' ),
 		);
 	}
 
@@ -691,26 +754,73 @@ final class CircleK_Locations {
 			return;
 		}
 
-		if ( ! in_array( $column, array( 'ckl_country', 'ckl_region', 'ckl_city', 'ckl_type' ), true ) ) {
+		if ( ! in_array( $column, array( 'ckl_area', 'ckl_area_ar', 'ckl_type', 'ckl_type_ar' ), true ) ) {
 			return;
 		}
 
-		$classification = $this->get_location_classification( $post_id );
-		$key = str_replace( 'ckl_', '', $column );
-		$value = $classification[ $key ];
-		if ( '' === $value ) {
-			$meta_key = 'ckl_type' === $column ? 'ckl_location_type' : $column;
-			$value = get_post_meta( $post_id, $meta_key, true );
-		}
-		if ( 'ckl_country' === $column && isset( $this->countries[ $value ] ) ) {
-			$value = $this->countries[ $value ];
-		} elseif ( 'ckl_region' === $column && isset( $this->regions[ $value ] ) ) {
-			$value = $this->regions[ $value ];
-		} elseif ( 'ckl_type' === $column && isset( $this->types[ $value ] ) ) {
-			$value = $this->types[ $value ];
+		$values = $this->get_admin_taxonomy_values( $post_id );
+		$dir    = false !== strpos( $column, '_ar' ) ? 'rtl' : 'ltr';
+		echo '<span dir="' . esc_attr( $dir ) . '">' . esc_html( $values[ $column ] ) . '</span>';
+	}
+
+	private function get_admin_taxonomy_values( $post_id ) {
+		static $cache = array();
+		if ( isset( $cache[ $post_id ] ) ) {
+			return $cache[ $post_id ];
 		}
 
-		echo esc_html( $value );
+		$values = array(
+			'ckl_area'    => '',
+			'ckl_area_ar' => '',
+			'ckl_type'    => '',
+			'ckl_type_ar' => '',
+		);
+		$areas = wp_get_post_terms( $post_id, self::AREA_TAXONOMY );
+
+		if ( ! is_wp_error( $areas ) && $areas ) {
+			$by_id = array();
+			foreach ( $areas as $term ) {
+				$by_id[ $term->term_id ] = $term;
+			}
+
+			$leaf       = null;
+			$leaf_depth = -1;
+			foreach ( $areas as $term ) {
+				$depth = count( get_ancestors( $term->term_id, self::AREA_TAXONOMY, 'taxonomy' ) );
+				if ( $depth > $leaf_depth ) {
+					$leaf       = $term;
+					$leaf_depth = $depth;
+				}
+			}
+
+			$path = array();
+			while ( $leaf ) {
+				array_unshift( $path, $leaf );
+				$leaf = $leaf->parent && isset( $by_id[ $leaf->parent ] ) ? $by_id[ $leaf->parent ] : null;
+			}
+
+			$names    = array();
+			$names_ar = array();
+			foreach ( $path as $term ) {
+				$name_ar    = (string) get_term_meta( $term->term_id, 'ckl_name_ar', true );
+				$names[]    = $term->name;
+				$names_ar[] = '' !== $name_ar ? $name_ar : $term->name;
+			}
+
+			$values['ckl_area']    = implode( ' / ', $names );
+			$values['ckl_area_ar'] = implode( ' / ', $names_ar );
+		}
+
+		$type_terms = wp_get_post_terms( $post_id, self::TYPE_TAXONOMY );
+		if ( ! is_wp_error( $type_terms ) && $type_terms ) {
+			$type_term              = reset( $type_terms );
+			$type_ar                = (string) get_term_meta( $type_term->term_id, 'ckl_name_ar', true );
+			$values['ckl_type']     = $type_term->name;
+			$values['ckl_type_ar']  = '' !== $type_ar ? $type_ar : $type_term->name;
+		}
+
+		$cache[ $post_id ] = $values;
+		return $values;
 	}
 
 	private function seed_locations() {
@@ -744,7 +854,7 @@ final class CircleK_Locations {
 			$this->backfill_arabic_fields();
 		}
 
-		if ( '1' !== (string) get_option( 'ckl_taxonomy_data_version', '' ) ) {
+		if ( '2' !== (string) get_option( 'ckl_taxonomy_data_version', '' ) ) {
 			$this->migrate_location_taxonomies();
 		}
 	}
@@ -830,7 +940,7 @@ final class CircleK_Locations {
 			update_post_meta( $post_id, 'ckl_address_ar', $ar[2] );
 			update_post_meta( $post_id, 'ckl_directions_url', $location['directions_url'] );
 			update_post_meta( $post_id, 'ckl_display_order', $index + 1 );
-			$this->sync_location_taxonomies( $post_id, $location['country'], $location['region'], $location['city'], $location['type'] );
+			$this->sync_location_taxonomies( $post_id, $location['country'], $location['region'], $location['city'], $location['type'], $ar[1] );
 
 			$active_ids[]   = (int) $post_id;
 			$active_codes[] = (string) $location['code'];
@@ -886,23 +996,28 @@ final class CircleK_Locations {
 				get_post_meta( $post_id, 'ckl_country', true ),
 				get_post_meta( $post_id, 'ckl_region', true ),
 				get_post_meta( $post_id, 'ckl_city', true ),
-				get_post_meta( $post_id, 'ckl_location_type', true )
+				get_post_meta( $post_id, 'ckl_location_type', true ),
+				get_post_meta( $post_id, 'ckl_city_ar', true )
 			);
 		}
 
-		update_option( 'ckl_taxonomy_data_version', '1', false );
+		update_option( 'ckl_taxonomy_data_version', '2', false );
 	}
 
-	private function sync_location_taxonomies( $post_id, $country, $region, $city, $type ) {
+	private function sync_location_taxonomies( $post_id, $country, $region, $city, $type, $city_ar = '' ) {
 		$country = sanitize_key( $country );
 		$region  = sanitize_key( $region );
 		$city    = sanitize_text_field( $city );
 		$type    = sanitize_key( $type );
+		$city_ar = sanitize_text_field( $city_ar );
 
 		if ( isset( $this->countries[ $country ], $this->regions[ $region ] ) && '' !== $city ) {
 			$country_id = $this->get_or_create_term( $this->countries[ $country ], self::AREA_TAXONOMY, $country );
 			$region_id  = $country_id ? $this->get_or_create_term( $this->regions[ $region ], self::AREA_TAXONOMY, $region, $country_id ) : 0;
 			$city_id    = $region_id ? $this->get_or_create_term( $city, self::AREA_TAXONOMY, sanitize_title( $city ), $region_id ) : 0;
+			$this->set_term_arabic_name( $country_id, $this->countries_ar[ $country ] );
+			$this->set_term_arabic_name( $region_id, $this->regions_ar[ $region ] );
+			$this->set_term_arabic_name( $city_id, '' !== $city_ar ? $city_ar : $city );
 
 			if ( $country_id && $region_id && $city_id ) {
 				wp_set_object_terms( $post_id, array( $country_id, $region_id, $city_id ), self::AREA_TAXONOMY, false );
@@ -911,9 +1026,22 @@ final class CircleK_Locations {
 
 		if ( isset( $this->types[ $type ] ) ) {
 			$type_id = $this->get_or_create_term( $this->types[ $type ], self::TYPE_TAXONOMY, $type );
+			$this->set_term_arabic_name( $type_id, $this->types_ar[ $type ] );
 			if ( $type_id ) {
 				wp_set_object_terms( $post_id, array( $type_id ), self::TYPE_TAXONOMY, false );
 			}
+		}
+	}
+
+	private function set_term_arabic_name( $term_id, $name ) {
+		if ( ! $term_id || '' === $name ) {
+			return;
+		}
+
+		$current = (string) get_term_meta( $term_id, 'ckl_name_ar', true );
+		$term    = get_term( $term_id );
+		if ( '' === $current || ( ! is_wp_error( $term ) && $term && $current === $term->name ) ) {
+			update_term_meta( $term_id, 'ckl_name_ar', sanitize_text_field( $name ) );
 		}
 	}
 
