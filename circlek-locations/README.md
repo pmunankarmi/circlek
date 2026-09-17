@@ -2,7 +2,7 @@
 
 Installable WordPress plugin for the redesigned Circle K locations directory supplied in `CircleK-Locations-HTML.zip`.
 
-Current plugin version: **1.4.2**.
+Current plugin version: **1.4.3**.
 
 ## Updates from GitHub
 
@@ -22,7 +22,7 @@ The repository and release asset must remain publicly downloadable for unattende
 2. Activate **Circle K Locations**.
 3. Open the existing WordPress page whose slug is `locations`.
 
-The plugin automatically replaces that page's old table content and preserves the active theme header and footer. The bundled roster contains every row from the supplied update sheets: 42 Saudi Arabia locations (13 fuel stations and 29 convenience stores) and 14 United Arab Emirates stores. Store codes are visible in the directory and searchable. Version 1.4.2 removes the editable store-number and display-order fields; the visible row number is generated automatically in PHP, so published locations are always numbered consecutively without gaps. The plugin also refreshes GitHub release metadata immediately when an administrator uses WordPress's **Check again** action. Use a full-width page template if the active theme constrains page content to a narrow column.
+The plugin automatically replaces that page's old table content and preserves the active theme header and footer. The bundled roster contains every row from the supplied update sheets: 42 Saudi Arabia locations (13 fuel stations and 29 convenience stores) and 14 United Arab Emirates stores. Store codes are visible in the directory and searchable. Version 1.4.3 removes the editable store-number and display-order fields; the visible row number is generated automatically in PHP, so published locations are always numbered consecutively without gaps. Fuel-group counts use station/stations (and the Arabic equivalents) instead of store/stores. The plugin also refreshes GitHub release metadata immediately when an administrator uses WordPress's **Check again** action. Use a full-width page template if the active theme constrains page content to a narrow column.
 
 For a page with a different slug, add this shortcode to the page:
 

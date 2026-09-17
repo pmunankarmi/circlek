@@ -107,8 +107,13 @@
       if (word) {
         var stem = word.getAttribute('data-plural');
         if (root.getAttribute('dir') === 'rtl') {
-          word.textContent = live === 1 ? 'متجر' : live === 2 ? 'متجران' :
-                             live >= 3 && live <= 10 ? 'متاجر' : 'متجرًا';
+          if (stem === 'station') {
+            word.textContent = live === 1 ? 'محطة' : live === 2 ? 'محطتان' :
+                               live >= 3 && live <= 10 ? 'محطات' : 'محطة';
+          } else {
+            word.textContent = live === 1 ? 'متجر' : live === 2 ? 'متجران' :
+                               live >= 3 && live <= 10 ? 'متاجر' : 'متجرًا';
+          }
         } else {
           word.textContent = live === 1 ? stem : stem + 's';
         }

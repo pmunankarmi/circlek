@@ -15,6 +15,12 @@ $is_arabic = $context['is_rtl'];
 $plural = static function( $count, $word = 'store' ) use ( $is_arabic ) {
 	if ( $is_arabic ) {
 		$count = (int) $count;
+		if ( 'station' === $word ) {
+			if ( 1 === $count ) { return 'محطة'; }
+			if ( 2 === $count ) { return 'محطتان'; }
+			if ( $count >= 3 && $count <= 10 ) { return 'محطات'; }
+			return 'محطة';
+		}
 		if ( 1 === $count ) { return 'متجر'; }
 		if ( 2 === $count ) { return 'متجران'; }
 		if ( $count >= 3 && $count <= 10 ) { return 'متاجر'; }
@@ -152,7 +158,7 @@ $strategy_items = array(
 										<?php endif; ?>
 									</span>
 									<h3 id="t-<?php echo esc_attr( $country_key . '-' . $type_key ); ?>"><?php echo esc_html( $type_label ); ?></h3>
-									<span class="ckb-type__n" dir="<?php echo $is_arabic ? 'rtl' : 'ltr'; ?>"><b data-group-count><?php echo esc_html( $type_count ); ?></b> <span data-plural="store"><?php echo esc_html( $plural( $type_count ) ); ?></span></span>
+									<span class="ckb-type__n" dir="<?php echo $is_arabic ? 'rtl' : 'ltr'; ?>"><b data-group-count><?php echo esc_html( $type_count ); ?></b> <span data-plural="<?php echo 'fuel' === $type_key ? 'station' : 'store'; ?>"><?php echo esc_html( $plural( $type_count, 'fuel' === $type_key ? 'station' : 'store' ) ); ?></span></span>
 								</header>
 
 								<?php foreach ( $context['groups'][ $country_key ][ $type_key ] as $city_key => $city_locations ) : ?>
@@ -160,7 +166,7 @@ $strategy_items = array(
 									<section class="ckb-city" data-groupable aria-labelledby="c-<?php echo esc_attr( $city_id ); ?>">
 										<header class="ckb-city__head">
 											<h3 id="c-<?php echo esc_attr( $city_id ); ?>"><?php echo esc_html( $context['city_labels'][ $city_key ] ); ?></h3>
-											<span class="ckb-city__meta" dir="<?php echo $is_arabic ? 'rtl' : 'ltr'; ?>"><?php echo esc_html( $context['regions'][ $city_locations[0]['region'] ] ); ?> &middot; <b data-group-count><?php echo esc_html( count( $city_locations ) ); ?></b> <span data-plural="store"><?php echo esc_html( $plural( count( $city_locations ) ) ); ?></span></span>
+											<span class="ckb-city__meta" dir="<?php echo $is_arabic ? 'rtl' : 'ltr'; ?>"><?php echo esc_html( $context['regions'][ $city_locations[0]['region'] ] ); ?> &middot; <b data-group-count><?php echo esc_html( count( $city_locations ) ); ?></b> <span data-plural="<?php echo 'fuel' === $type_key ? 'station' : 'store'; ?>"><?php echo esc_html( $plural( count( $city_locations ), 'fuel' === $type_key ? 'station' : 'store' ) ); ?></span></span>
 										</header>
 										<ul class="ckb-rows">
 											<?php foreach ( $city_locations as $location ) : ?>
