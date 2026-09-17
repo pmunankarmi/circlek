@@ -130,6 +130,7 @@ $strategy_items = array(
 			</div>
 
 			<div class="ckl-results">
+				<?php $display_number = 0; ?>
 				<?php foreach ( $context['countries'] as $country_key => $country_label ) : ?>
 					<?php if ( empty( $context['groups'][ $country_key ] ) ) { continue; } ?>
 					<section class="ckb-country" data-groupable aria-labelledby="h-<?php echo esc_attr( $country_key ); ?>">
@@ -164,14 +165,15 @@ $strategy_items = array(
 										<ul class="ckb-rows">
 											<?php foreach ( $city_locations as $location ) : ?>
 												<?php
-												$haystack = strtolower( implode( ' ', array( $location['number'], $location['code'], $location['name'], $location['city'], $location['address'], $context['regions'][ $location['region'] ], $context['types'][ $location['type'] ] ) ) );
+												$display_number++;
+												$haystack = strtolower( implode( ' ', array( $display_number, $location['code'], $location['name'], $location['city'], $location['address'], $context['regions'][ $location['region'] ], $context['types'][ $location['type'] ] ) ) );
 												$directions = $location['directions_url'];
 												if ( ! $directions ) {
 													$directions = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode( 'Circle K ' . $location['name'] . ', ' . $location['address'] );
 												}
 												?>
 												<li class="ckb-row" data-store data-primary data-country="<?php echo esc_attr( $location['country'] ); ?>" data-region="<?php echo esc_attr( $location['region'] ); ?>" data-city="<?php echo esc_attr( $location['city_slug'] ); ?>" data-type="<?php echo esc_attr( $location['type'] ); ?>" data-hay="<?php echo esc_attr( $haystack ); ?>">
-													<span class="ckb-row__no" aria-hidden="true"><?php echo esc_html( $location['number'] ); ?></span>
+													<span class="ckb-row__no" aria-hidden="true"><?php echo esc_html( $display_number ); ?></span>
 													<div class="ckb-row__main">
 														<h4 class="ckb-row__name" dir="<?php echo esc_attr( $location['name_dir'] ); ?>"><?php echo esc_html( $location['name'] ); ?></h4>
 														<p class="ckb-row__code"><span><?php echo esc_html( $ui['store_code'] ); ?></span> <b dir="ltr"><?php echo esc_html( $location['code'] ); ?></b></p>

@@ -116,7 +116,6 @@ final class CircleK_Locations {
 
 	public function register_meta_fields() {
 		$location_fields = array(
-			'ckl_store_number'   => array( 'integer', 'absint' ),
 			'ckl_store_code'     => array( 'string', 'sanitize_text_field' ),
 			'ckl_country'        => array( 'string', 'sanitize_key' ),
 			'ckl_region'         => array( 'string', 'sanitize_key' ),
@@ -127,7 +126,6 @@ final class CircleK_Locations {
 			'ckl_address'        => array( 'string', 'sanitize_textarea_field' ),
 			'ckl_address_ar'     => array( 'string', 'sanitize_textarea_field' ),
 			'ckl_directions_url' => array( 'string', 'esc_url_raw' ),
-			'ckl_display_order'  => array( 'integer', 'absint' ),
 		);
 
 		foreach ( $location_fields as $key => $field ) {
@@ -200,7 +198,6 @@ final class CircleK_Locations {
 	public function render_location_meta_box( $post ) {
 		wp_nonce_field( 'ckl_save_location', 'ckl_location_nonce' );
 		$values = array(
-			'number'     => get_post_meta( $post->ID, 'ckl_store_number', true ),
 			'code'       => get_post_meta( $post->ID, 'ckl_store_code', true ),
 			'country'    => get_post_meta( $post->ID, 'ckl_country', true ),
 			'region'     => get_post_meta( $post->ID, 'ckl_region', true ),
@@ -211,14 +208,11 @@ final class CircleK_Locations {
 			'address'    => get_post_meta( $post->ID, 'ckl_address', true ),
 			'address_ar' => get_post_meta( $post->ID, 'ckl_address_ar', true ),
 			'directions' => get_post_meta( $post->ID, 'ckl_directions_url', true ),
-			'order'      => get_post_meta( $post->ID, 'ckl_display_order', true ),
 		);
 		?>
 		<style>.ckl-admin-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 22px}.ckl-admin-field label{display:block;font-weight:600;margin-bottom:6px}.ckl-admin-field input,.ckl-admin-field select,.ckl-admin-field textarea{width:100%}.ckl-admin-field--wide{grid-column:1/-1}.ckl-admin-section{grid-column:1/-1;margin:8px 0 -4px;padding-top:18px;border-top:1px solid #dcdcde}.ckl-admin-section h3{margin:0 0 5px}.ckl-admin-section p,.ckl-admin-help{color:#646970;font-size:12px;margin:5px 0 0}@media(max-width:782px){.ckl-admin-grid{grid-template-columns:1fr}}</style>
 		<div class="ckl-admin-grid">
-			<?php $this->number_field( 'ckl_store_number', __( 'Store number', 'circlek-locations' ), $values['number'], 0 ); ?>
 			<?php $this->text_field( 'ckl_store_code', __( 'Source store code', 'circlek-locations' ), $values['code'] ); ?>
-			<?php $this->number_field( 'ckl_display_order', __( 'Display order', 'circlek-locations' ), $values['order'], 1 ); ?>
 			<?php $this->select_field( 'ckl_country', __( 'Country', 'circlek-locations' ), $values['country'], $this->countries ); ?>
 			<?php $this->select_field( 'ckl_region', __( 'Region', 'circlek-locations' ), $values['region'], $this->regions ); ?>
 			<?php $this->text_field( 'ckl_city', __( 'City', 'circlek-locations' ), $values['city'] ); ?>
@@ -282,15 +276,6 @@ final class CircleK_Locations {
 		<?php
 	}
 
-	private function number_field( $name, $label, $value, $min ) {
-		?>
-		<div class="ckl-admin-field">
-			<label for="<?php echo esc_attr( $name ); ?>"><?php echo esc_html( $label ); ?></label>
-			<input id="<?php echo esc_attr( $name ); ?>" name="<?php echo esc_attr( $name ); ?>" type="number" min="<?php echo esc_attr( $min ); ?>" step="1" value="<?php echo esc_attr( $value ); ?>" required />
-		</div>
-		<?php
-	}
-
 	private function select_field( $name, $label, $value, $options ) {
 		?>
 		<div class="ckl-admin-field">
@@ -314,9 +299,7 @@ final class CircleK_Locations {
 		$region  = isset( $_POST['ckl_region'] ) ? sanitize_key( wp_unslash( $_POST['ckl_region'] ) ) : '';
 		$type    = isset( $_POST['ckl_location_type'] ) ? sanitize_key( wp_unslash( $_POST['ckl_location_type'] ) ) : '';
 
-		update_post_meta( $post_id, 'ckl_store_number', isset( $_POST['ckl_store_number'] ) ? absint( $_POST['ckl_store_number'] ) : 0 );
 		update_post_meta( $post_id, 'ckl_store_code', isset( $_POST['ckl_store_code'] ) ? sanitize_text_field( wp_unslash( $_POST['ckl_store_code'] ) ) : '' );
-		update_post_meta( $post_id, 'ckl_display_order', isset( $_POST['ckl_display_order'] ) ? absint( $_POST['ckl_display_order'] ) : 9999 );
 		update_post_meta( $post_id, 'ckl_country', isset( $this->countries[ $country ] ) ? $country : '' );
 		update_post_meta( $post_id, 'ckl_region', isset( $this->regions[ $region ] ) ? $region : '' );
 		update_post_meta( $post_id, 'ckl_location_type', isset( $this->types[ $type ] ) ? $type : '' );
@@ -445,7 +428,6 @@ final class CircleK_Locations {
 			$locations[] = array(
 				'id'             => $post->ID,
 				'name'           => $name,
-				'number'         => absint( get_post_meta( $post->ID, 'ckl_store_number', true ) ),
 				'code'           => get_post_meta( $post->ID, 'ckl_store_code', true ),
 				'country'        => $country,
 				'region'         => $region,
@@ -636,7 +618,6 @@ final class CircleK_Locations {
 		return array(
 			'cb'          => isset( $columns['cb'] ) ? $columns['cb'] : '<input type="checkbox" />',
 			'title'       => __( 'Store Name', 'circlek-locations' ),
-			'ckl_number'  => __( 'No.', 'circlek-locations' ),
 			'ckl_code'    => __( 'Store Code', 'circlek-locations' ),
 			'ckl_country' => __( 'Country', 'circlek-locations' ),
 			'ckl_region'  => __( 'Region', 'circlek-locations' ),
@@ -648,7 +629,6 @@ final class CircleK_Locations {
 
 	public function admin_column_value( $column, $post_id ) {
 		$map = array(
-			'ckl_number'  => 'ckl_store_number',
 			'ckl_code'    => 'ckl_store_code',
 			'ckl_country' => 'ckl_country',
 			'ckl_region'  => 'ckl_region',
