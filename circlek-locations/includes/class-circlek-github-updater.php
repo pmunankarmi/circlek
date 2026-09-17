@@ -89,6 +89,10 @@ final class CircleK_GitHub_Updater {
 	}
 
 	private function get_release() {
+		if ( is_admin() && isset( $_GET['force-check'] ) ) {
+			delete_site_transient( self::CACHE_KEY );
+		}
+
 		$cached = get_site_transient( self::CACHE_KEY );
 		if ( is_array( $cached ) ) {
 			return $cached;
@@ -134,7 +138,7 @@ final class CircleK_GitHub_Updater {
 			'body'         => isset( $data['body'] ) ? sanitize_textarea_field( $data['body'] ) : '',
 		);
 
-		set_site_transient( self::CACHE_KEY, $release, HOUR_IN_SECONDS );
+		set_site_transient( self::CACHE_KEY, $release, 5 * MINUTE_IN_SECONDS );
 		return $release;
 	}
 }
