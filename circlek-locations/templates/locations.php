@@ -174,6 +174,7 @@ $strategy_items = array(
 													<span class="ckb-row__no" aria-hidden="true"><?php echo esc_html( $location['number'] ); ?></span>
 													<div class="ckb-row__main">
 														<h4 class="ckb-row__name" dir="<?php echo esc_attr( $location['name_dir'] ); ?>"><?php echo esc_html( $location['name'] ); ?></h4>
+														<p class="ckb-row__code"><span><?php echo esc_html( $ui['store_code'] ); ?></span> <b dir="ltr"><?php echo esc_html( $location['code'] ); ?></b></p>
 														<p class="ckb-row__addr" dir="<?php echo esc_attr( $location['address_dir'] ); ?>"><?php echo nl2br( esc_html( $location['address'] ) ); ?></p>
 													</div>
 													<span class="ckb-row__city" dir="<?php echo esc_attr( $location['city_dir'] ); ?>"><?php echo esc_html( $location['city'] ); ?></span>

@@ -568,7 +568,7 @@ final class CircleK_Locations {
 				'search' => 'Search stores', 'search_label' => 'Search stores by name, city or address', 'clear_search' => 'Clear search',
 				'filter_stores' => 'Filter stores', 'filters' => 'Filters', 'country' => 'Country', 'all_countries' => 'All countries',
 				'type' => 'Type', 'region' => 'Region', 'city' => 'City', 'reset_filters' => 'Reset filters', 'showing' => 'Showing',
-				'of' => 'of', 'directions' => 'Directions', 'no_results' => 'No stores match your search.', 'clear_filters' => 'Clear filters',
+				'of' => 'of', 'store_code' => 'Store code', 'directions' => 'Directions', 'no_results' => 'No stores match your search.', 'clear_filters' => 'Clear filters',
 				'hero_countries' => array( 'ksa' => 'Saudi Arabia', 'uae' => 'United Arab Emirates' ),
 				'strategy_items' => array( 'Airports', 'Gas Station', 'Highway between cities', 'Hospitals', 'Large business complexes', 'Large Governmental Cities Projects' ),
 			);
@@ -578,7 +578,7 @@ final class CircleK_Locations {
 			'search' => 'ابحث عن متجر', 'search_label' => 'ابحث عن متجر بالاسم أو المدينة أو العنوان', 'clear_search' => 'مسح البحث',
 			'filter_stores' => 'تصفية المتاجر', 'filters' => 'التصفية', 'country' => 'الدولة', 'all_countries' => 'كل الدول',
 			'type' => 'النوع', 'region' => 'المنطقة', 'city' => 'المدينة', 'reset_filters' => 'إعادة التصفية', 'showing' => 'عرض',
-			'of' => 'من', 'directions' => 'الاتجاهات', 'no_results' => 'لا توجد متاجر مطابقة لبحثك.', 'clear_filters' => 'مسح التصفية',
+			'of' => 'من', 'store_code' => 'رمز المتجر', 'directions' => 'الاتجاهات', 'no_results' => 'لا توجد متاجر مطابقة لبحثك.', 'clear_filters' => 'مسح التصفية',
 			'hero_countries' => array( 'ksa' => 'السعودية', 'uae' => 'الإمارات' ),
 			'strategy_items' => array( 'المطارات', 'محطة البترول', 'الطريق السريع بين المدن', 'المستشفيات', 'مجمعات تجارية كبيرة', 'مشاريع المدن الحكومية الكبيرة' ),
 		);
@@ -695,16 +695,16 @@ final class CircleK_Locations {
 	}
 
 	public function maybe_upgrade_data() {
-		if ( '3' !== (string) get_option( 'ckl_location_data_version', '' ) ) {
-			$this->sync_location_data();
+		if ( '4' !== (string) get_option( 'ckl_location_data_version', '' ) ) {
+			$this->sync_location_data( true );
 		}
 
-		if ( '3' !== (string) get_option( 'ckl_ar_data_version', '' ) ) {
+		if ( '4' !== (string) get_option( 'ckl_ar_data_version', '' ) ) {
 			$this->backfill_arabic_fields();
 		}
 	}
 
-	private function sync_location_data() {
+	private function sync_location_data( $replace_existing = false ) {
 		$locations = require CKL_DIR . 'data/locations.php';
 		$arabic    = require CKL_DIR . 'data/locations-ar.php';
 		$post_ids  = get_posts(
@@ -717,6 +717,13 @@ final class CircleK_Locations {
 				'suppress_filters' => true,
 			)
 		);
+
+		if ( $replace_existing ) {
+			foreach ( $post_ids as $post_id ) {
+				wp_delete_post( $post_id, true );
+			}
+			$post_ids = array();
+		}
 
 		$posts_by_code   = array();
 		$posts_by_legacy = array();
@@ -812,7 +819,7 @@ final class CircleK_Locations {
 		}
 
 		update_option( 'ckl_managed_source_codes', $active_codes, false );
-		update_option( 'ckl_location_data_version', '3', false );
+		update_option( 'ckl_location_data_version', '4', false );
 	}
 
 	public function backfill_arabic_fields() {
@@ -850,6 +857,6 @@ final class CircleK_Locations {
 			}
 		}
 
-		update_option( 'ckl_ar_data_version', '3', false );
+		update_option( 'ckl_ar_data_version', '4', false );
 	}
 }

@@ -2,7 +2,7 @@
 
 Installable WordPress plugin for the redesigned Circle K locations directory supplied in `CircleK-Locations-HTML.zip`.
 
-Current plugin version: **1.2.0**.
+Current plugin version: **1.3.0**.
 
 ## Updates from GitHub
 
@@ -22,7 +22,7 @@ The repository and release asset must remain publicly downloadable for unattende
 2. Activate **Circle K Locations**.
 3. Open the existing WordPress page whose slug is `locations`.
 
-The plugin automatically replaces that page's old table content and preserves the active theme header and footer. It seeds the 47 reconciled operating locations on first activation (35 Saudi Arabia, 12 United Arab Emirates). Version 1.2.0 also updates existing installations from the two September 2026 location workbooks. Branches explicitly marked closed or scheduled for closure are moved to Draft, so their records remain recoverable in WordPress. Use a full-width page template if the active theme constrains page content to a narrow column.
+The plugin automatically replaces that page's old table content and preserves the active theme header and footer. Version 1.3.0 replaces the previous location posts with the latest 44-entry roster: 30 Saudi Arabia locations (including 13 fuel stations) and 14 United Arab Emirates stores. Store codes are visible in the directory and searchable. Use a full-width page template if the active theme constrains page content to a narrow column.
 
 For a page with a different slug, add this shortcode to the page:
 
@@ -59,7 +59,7 @@ All fields are registered with the WordPress REST API. Advanced Custom Fields is
 
 ## Arabic support
 
-The directory automatically detects the Arabic/RTL route (including Polylang's `/ar/locations/` route), mirrors the layout, and loads the Arabic name, city and address fields. Version 1.2.0 retains the completed translations supplied in `CircleK-Locations-Arabic-Content.xlsx`, uses the theme's Noto Kufi Arabic typography consistently throughout the RTL directory, and copies English into the Arabic fields for newly added locations until translations are supplied. Search supports Arabic and English text, Arabic store-count grammar is handled dynamically, and filter URLs keep their existing stable slugs.
+The directory automatically detects the Arabic/RTL route (including Polylang's `/ar/locations/` route), mirrors the layout, and loads the Arabic name, city and address fields. Existing translations supplied in `CircleK-Locations-Arabic-Content.xlsx` are retained where their branch remains in the replacement roster. New entries use English until translations are supplied. The RTL directory uses Noto Kufi Arabic consistently, search supports Arabic, English and store codes, Arabic store-count grammar is handled dynamically, and filter URLs keep their existing stable slugs.
 
 ## Existing deep links
 
